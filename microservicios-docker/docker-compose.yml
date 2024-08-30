@@ -1,0 +1,109 @@
+version: '3.7'
+services:
+
+  # barber_user_db
+  barber_user_db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    restart: always
+    networks:
+      - barber-microservices
+    environment: 
+      MYSQL_DATABASE: 'barber_user_db'
+      MYSQL_USER: 'admin'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'root'
+    volumes:
+      - barber_user_db_data:/var/lib/mysql
+  
+  # barber_appointments_db
+  barber_appointments_db:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    restart: always
+    networks:
+      - barber-microservices
+    environment: 
+      MYSQL_DATABASE: 'barber_appointments_db'
+      MYSQL_USER: 'admin'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'root'
+    volumes:
+      - barber_appointments_db_data:/var/lib/mysql
+
+  # Eureka Server
+  eureka-server:
+    image: joseantonioleon/eureka-server:1.0
+    ports:
+      - "8761:8761"
+    restart: always
+    networks:
+      - barber-microservices
+
+  # Config Server
+  config-server:
+    image: joseantonioleon/config-server:1.0
+    ports:
+      - "8888:8888"
+    restart: always
+    networks:
+      - barber-microservices
+
+  # User Service
+  user-service:
+    image: joseantonioleon/user-service:1.0
+    restart: always
+    networks:
+      - barber-microservices
+    depends_on: 
+      - config-server
+      - eureka-server
+      - barber_user_db
+
+  # Appointment Service
+  appointment-service:
+    image: joseantonioleon/appointment-service:1.0
+    restart: always
+    networks:
+      - barber-microservices
+    depends_on: 
+      - config-server
+      - eureka-server
+      - user-service
+      - barber_appointments_db
+
+  # Oauth Service
+  oauth-service:
+    image: joseantonioleon/oauth-service:1.0
+    ports:
+      - "9100:9100"
+    restart: always
+    networks:
+      - barber-microservices
+    depends_on: 
+      - config-server
+      - eureka-server
+      - user-service
+
+  apigateway-service:
+    image: joseantonioleon/apigateway-service:1.0
+    ports:
+      - "8090:8090"
+    restart: always
+    networks:
+      - barber-microservices
+    depends_on: 
+      - config-server
+      - eureka-server
+      - user-service
+      - oauth-service
+      - appointment-service
+
+networks:
+  barber-microservices:
+
+volumes:
+  barber_user_db_data:
+  barber_appointments_db_data:

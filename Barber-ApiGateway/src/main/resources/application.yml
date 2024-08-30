@@ -1,0 +1,43 @@
+resilience4j:
+  circuitbreaker:
+    configs:
+      defecto:
+        sliding-window-size: 6
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 4
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+    instances:
+      appointments:
+        base-config: defecto
+  timelimiter:
+    configs:
+      defecto:
+        timeout-duration: 10s
+    instances:
+      appointments:
+        base-config: defecto
+
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: AppointmentService
+        uri: lb://AppointmentService
+        predicates:
+          - Path=/api/appointments/**
+        filters:
+          - StripPrefix=1
+      - id: UserService
+        uri: lb://UserService
+        predicates:
+          - Path=/api/users/**, /api/roles/**
+        filters:
+          - StripPrefix=1
+      - id: OAuthService
+        uri: lb://OAuthService
+        predicates:
+          - Path=/api/security/**
+        filters:
+          - StripPrefix=2

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Created-By: Maven JAR Plugin 3.4.2
+Build-Jdk-Spec: 17
+Implementation-Title: Barber-ConfigServer
+Implementation-Version: 1.0.0
+Main-Class: com.barber.configServer.BarberConfigServerApplication
+
