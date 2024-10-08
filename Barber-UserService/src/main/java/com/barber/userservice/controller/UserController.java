@@ -54,17 +54,13 @@ public class UserController {
     @GetMapping("/email/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         try {
-            // Decodificar el parámetro de email en caso de que venga codificado
             String decodedEmail = URLDecoder.decode(email, StandardCharsets.UTF_8.toString());
-
-            // Buscar el usuario por el email decodificado
             User user = userService.findByEmail(decodedEmail);
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(user);
         } catch (Exception e) {
-            // Manejo de errores, por ejemplo, si el email no está bien codificado
             return ResponseEntity.badRequest().body("Invalid email format");
         }
     }

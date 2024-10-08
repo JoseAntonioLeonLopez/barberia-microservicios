@@ -17,9 +17,9 @@ import java.util.List;
 public class AppointmentController {
 
     @Autowired
-    private AppointmentServiceImpl appointmentService;
+    private AppointmentServiceImpl appointmentService; // Servicio de citas.
 
-    // Crear una nueva cita
+    // Crear una nueva cita.
     @PostMapping
     public ResponseEntity<?> createAppointment(@RequestBody Appointment appointment) {
         try {
@@ -30,7 +30,7 @@ public class AppointmentController {
         }
     }
 
-    // Actualizar una cita existente
+    // Actualizar una cita existente.
     @PutMapping("/{id}")
     public ResponseEntity<?> updateAppointment(@PathVariable("id") Long id,
                                                 @RequestBody Appointment appointmentDetails) {
@@ -42,7 +42,7 @@ public class AppointmentController {
         }
     }
 
-    // Eliminar una cita existente
+    // Eliminar una cita existente.
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteAppointment(@PathVariable("id") Long id) {
         try {
@@ -53,7 +53,18 @@ public class AppointmentController {
         }
     }
 
-    // Obtener todas las citas
+    // Eliminar citas de un cliente.
+    @DeleteMapping("/client/{clientId}")
+    public ResponseEntity<?> deleteAppointmentByClientId(@PathVariable("clientId") Long clientId) {
+        try {
+            appointmentService.deleteAppointmentByClientId(clientId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Obtener todas las citas.
     @GetMapping
     public ResponseEntity<?> findAll() {
         List<Appointment> appointments = appointmentService.findAll();
@@ -63,7 +74,7 @@ public class AppointmentController {
         return new ResponseEntity<>(appointments, HttpStatus.OK);
     }
 
-    // Obtener citas por ID de cliente
+    // Obtener citas por ID de cliente.
     @GetMapping("/client/{clientId}")
     public ResponseEntity<?> findByClientId(@PathVariable("clientId") Long clientId) {
         List<Appointment> appointments = appointmentService.findByClientId(clientId);
@@ -73,7 +84,7 @@ public class AppointmentController {
         return new ResponseEntity<>(appointments, HttpStatus.OK);
     }
 
-    // Obtener citas por ID de barbero
+    // Obtener citas por ID de barbero.
     @GetMapping("/barber/{barberId}")
     public ResponseEntity<?> findByBarberId(@PathVariable("barberId") Long barberId) {
         List<Appointment> appointments = appointmentService.findByBarberId(barberId);
@@ -83,7 +94,7 @@ public class AppointmentController {
         return new ResponseEntity<>(appointments, HttpStatus.OK);
     }
 
-    // Obtener citas entre fechas
+    // Obtener citas entre fechas.
     @GetMapping("/date-range")
     public ResponseEntity<?> findByAppointmentDateBetween(
             @RequestParam("startDate") LocalDateTime startDate,
@@ -98,7 +109,7 @@ public class AppointmentController {
         return new ResponseEntity<>(appointments, HttpStatus.OK);
     }
 
-    // Verificar si existe una cita para un cliente en una fecha
+    // Verificar si existe una cita para un cliente en una fecha.
     @GetMapping("/exists/client")
     public ResponseEntity<?> existsByClientIdAndAppointmentDate(
             @RequestParam("clientId") Long clientId,
@@ -107,7 +118,7 @@ public class AppointmentController {
         return new ResponseEntity<>(exists, HttpStatus.OK);
     }
 
-    // Verificar si existe una cita para un barbero en una fecha
+    // Verificar si existe una cita para un barbero en una fecha.
     @GetMapping("/exists/barber")
     public ResponseEntity<?> existsByBarberIdAndAppointmentDate(
             @RequestParam("barberId") Long barberId,

@@ -14,21 +14,24 @@ import com.barber.oauth.services.IUserService;
 import com.barber.userCommons.entity.User;
 
 @Component
-public class InfoAdditionalToken implements TokenEnhancer{
+public class InfoAdditionalToken implements TokenEnhancer {
 
 	@Autowired
-	private IUserService usuarioService;
+	private IUserService usuarioService; // Servicio para obtener información del usuario
 	
 	@Override
 	public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-		Map<String, Object> info = new HashMap<String, Object>();
+		// Mapa para almacenar información adicional del usuario
+		Map<String, Object> info = new HashMap<>();
 		
+		// Obtiene el usuario a partir del nombre (email) de la autenticación
 		User user = usuarioService.getUserByEmail(authentication.getName());
-		info.put("email", user.getEmail());
-		info.put("phoneNumber", user.getPhoneNumber());
-		info.put("role", user.getRole());
+		info.put("email", user.getEmail()); // Agrega el email al token
+		info.put("phoneNumber", user.getPhoneNumber()); // Agrega el número de teléfono al token
+		info.put("role", user.getRole()); // Agrega el rol del usuario al token
+		
+		// Establece la información adicional en el token de acceso
 		((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(info);
-		return accessToken;
+		return accessToken; // Devuelve el token de acceso mejorado
 	}
-
 }

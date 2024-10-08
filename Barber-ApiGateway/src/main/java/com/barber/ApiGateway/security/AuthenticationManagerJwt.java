@@ -11,21 +11,24 @@ import io.jsonwebtoken.Jwts;
 import reactor.core.publisher.Mono;
 
 @Component
-public class AuthenticationManagerJwt implements ReactiveAuthenticationManager{
+public class AuthenticationManagerJwt implements ReactiveAuthenticationManager {
 
 	@Value("${config.security.oauth.jwt.key}")
-	private String llaveJwt; 
-	
+	private String llaveJwt;  // Llave secreta para firmar el token JWT, se obtiene del archivo de configuración.
+
 	@Override
 	public Mono<Authentication> authenticate(Authentication authentication) {
-		String token = authentication.getCredentials().toString();
-		
-		Claims claims = Jwts.parserBuilder()
-                .setSigningKey(llaveJwt.getBytes())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+		String token = authentication.getCredentials().toString();  // Extrae el token JWT de las credenciales.
 
-        return Mono.just(new UsernamePasswordAuthenticationToken(claims.getSubject(), null, null));
+		// Valida y parsea el token JWT usando la llave secreta.
+		Claims claims = Jwts.parserBuilder()
+				.setSigningKey(llaveJwt.getBytes())  // Convierte la llave a bytes.
+				.build()
+				.parseClaimsJws(token)
+				.getBody();  // Extrae las claims del token.
+
+		// Retorna un objeto de autenticación que contiene el usuario (subject) y sus roles (vacío aquí).
+		return Mono.just(new UsernamePasswordAuthenticationToken(claims.getSubject(), null, null));
 	}
 }
+

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -66,10 +68,10 @@ public class AppointmentServiceImpl implements IAppointmentService {
         validateUserRole(appointment.getClientId(), "CLIENT");
         validateUserRole(appointment.getBarberId(), "BARBER");
 
+        // Verificar si ya existe una cita para el cliente o barbero en la misma fecha
         if (existsByClientIdAndAppointmentDate(appointment.getClientId(), appointment.getAppointmentDate())) {
             throw new RuntimeException("Client already has an appointment at this date and time.");
         }
-
         if (existsByBarberIdAndAppointmentDate(appointment.getBarberId(), appointment.getAppointmentDate())) {
             throw new RuntimeException("Barber already has an appointment at this date and time.");
         }
@@ -87,7 +89,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
             appointment.setClientId(appointmentDetails.getClientId());
             appointment.setBarberId(appointmentDetails.getBarberId());
             appointment.setAppointmentDate(appointmentDetails.getAppointmentDate());
-            // Actualizar el campo `updatedAt` a la fecha y hora actuales
+            // Actualizar la fecha de modificación
             appointment.setUpdatedAt(LocalDateTime.now());
             return appointmentRepository.save(appointment);
         } else {
@@ -105,7 +107,6 @@ public class AppointmentServiceImpl implements IAppointmentService {
     }
 
     private void validateUserRole(Long userId, String expectedRoleName) {
-
         UserDTO userDTO = userClientRest.getUserById(userId);
         if (userDTO == null) {
             throw new RuntimeException("User with id " + userId + " not found.");
@@ -116,8 +117,25 @@ public class AppointmentServiceImpl implements IAppointmentService {
             throw new RuntimeException("Role with name " + expectedRoleName + " not found.");
         }
 
+        // Validar que el usuario tenga el rol esperado
         if (!role.getId().equals(userDTO.getRoleId())) {
             throw new RuntimeException("User with email " + userDTO.getEmail() + " is not a " + expectedRoleName + ".");
         }
+    }
+
+    @Transactional
+    @Override
+    public void deleteAppointmentByClientId(Long clientId) {
+        // Validar que el cliente tenga el rol "CLIENT"
+        validateUserRole(clientId, "CLIENT");
+
+        // Obtener todas las citas del cliente
+        List<Appointment> appointments = appointmentRepository.findByClientId(clientId);
+        if (appointments.isEmpty()) {
+            throw new RuntimeException("No appointments found for client with id " + clientId);
+        }
+
+        // Borrar todas las citas del cliente
+        appointmentRepository.deleteAppointmentByClientId(clientId);
     }
 }

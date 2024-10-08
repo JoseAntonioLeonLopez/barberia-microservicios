@@ -1,43 +1,52 @@
 resilience4j:
-  circuitbreaker:
+  circuitbreaker:  # Configuración de circuit breakers.
     configs:
-      defecto:
-        sliding-window-size: 6
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 60s
-        permitted-number-of-calls-in-half-open-state: 4
-        slow-call-rate-threshold: 50
-        slow-call-duration-threshold: 2s
+      defecto:  # Configuración por defecto para circuit breakers.
+        sliding-window-size: 6  # Número de llamadas en la ventana deslizante para evaluar fallos.
+        failure-rate-threshold: 50  # Umbral de porcentaje de fallos (50%) para abrir el circuito.
+        wait-duration-in-open-state: 60s  # Tiempo que el circuito permanece abierto antes de intentar restaurar.
+        permitted-number-of-calls-in-half-open-state: 4  # Número de llamadas permitidas cuando el circuito está medio abierto.
+        slow-call-rate-threshold: 50  # Porcentaje de llamadas lentas que causarán la apertura del circuito.
+        slow-call-duration-threshold: 2s  # Umbral de duración para considerar una llamada como lenta.
     instances:
-      appointments:
-        base-config: defecto
-  timelimiter:
+      appointments:  # Configuración para el servicio de citas (appointments).
+        base-config: defecto  # Utiliza la configuración "defecto" definida anteriormente.
+  timelimiter:  # Configuración para el límite de tiempo de las llamadas.
     configs:
-      defecto:
-        timeout-duration: 10s
+      defecto:  # Configuración por defecto para el time limiter.
+        timeout-duration: 10s  # Duración máxima permitida para la ejecución de llamadas (10 segundos).
     instances:
-      appointments:
-        base-config: defecto
+      appointments:  # Configuración de time limiter para el servicio de citas (appointments).
+        base-config: defecto  # Utiliza la configuración "defecto".
 
 spring:
   cloud:
     gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+          # Elimina cabeceras duplicadas en las respuestas (Access-Control-Allow-Credentials y Access-Control-Allow-Origin).
+      globalcors:
+        corsConfigurations:
+          '[/**]':  # Configuración global de CORS para todas las rutas.
+            allowedOrigins: "*"  # Permite todas las fuentes.
+            allowedMethods: "*"  # Permite todos los métodos HTTP.
+            allowedHeaders: "*"  # Permite todos los headers.
       routes:
-      - id: AppointmentService
-        uri: lb://AppointmentService
+      - id: AppointmentService  # Definición de la ruta para el servicio de citas.
+        uri: lb://AppointmentService  # Utiliza el balanceador de carga (lb) para el servicio AppointmentService.
         predicates:
-          - Path=/api/appointments/**
+          - Path=/api/appointments/**  # Las solicitudes que comienzan con "/api/appointments/**" se enrutarán a este servicio.
         filters:
-          - StripPrefix=1
-      - id: UserService
-        uri: lb://UserService
+          - StripPrefix=1  # Elimina el primer segmento del path antes de enrutar la solicitud al servicio.
+      - id: UserService  # Definición de la ruta para el servicio de usuarios.
+        uri: lb://UserService  # Utiliza el balanceador de carga para el servicio UserService.
         predicates:
-          - Path=/api/users/**, /api/roles/**
+          - Path=/api/users/**, /api/roles/**  # Enruta las solicitudes a "/api/users/**" y "/api/roles/**".
         filters:
-          - StripPrefix=1
-      - id: OAuthService
-        uri: lb://OAuthService
+          - StripPrefix=1  # Elimina el primer segmento del path.
+      - id: OAuthService  # Definición de la ruta para el servicio de autenticación OAuth.
+        uri: lb://OAuthService  # Utiliza el balanceador de carga para OAuthService.
         predicates:
-          - Path=/api/security/**
+          - Path=/api/security/**  # Enrutar solicitudes que comienzan con "/api/security/**".
         filters:
-          - StripPrefix=2
+          - StripPrefix=2  # Elimina los dos primeros segmentos del path.

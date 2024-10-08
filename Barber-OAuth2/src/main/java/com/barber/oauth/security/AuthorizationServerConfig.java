@@ -22,63 +22,58 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
 	@Autowired
-	private Environment env;
+	private Environment env; // Para acceder a las propiedades del entorno
 
 	@Autowired
-	private BCryptPasswordEncoder passwordEncoder;
+	private BCryptPasswordEncoder passwordEncoder; // Para codificar contraseñas
 	
 	@Autowired
-	private AuthenticationManager authenticationManager;
+	private AuthenticationManager authenticationManager; // Para manejar la autenticación
     
     @Autowired
-    private InfoAdditionalToken infoAdditionalToken;
+    private InfoAdditionalToken infoAdditionalToken; // Para agregar información adicional al token
 
     @Override
 	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+		// Configura el acceso a las claves del token
 		security.tokenKeyAccess("permitAll()")
 		.checkTokenAccess("isAuthenticated()");
 	}
 
     @Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		// Configura los detalles del cliente en memoria
 		clients.inMemory().withClient(env.getProperty("config.security.oauth.client.id"))
 		.secret(passwordEncoder.encode(env.getProperty("config.security.oauth.client.secret")))
 		.scopes("read", "write")
 		.authorizedGrantTypes("password", "refresh_token")
-		.accessTokenValiditySeconds(3600)
-		.refreshTokenValiditySeconds(3600);
+		.accessTokenValiditySeconds(3600) // 1 hora de validez del token
+		.refreshTokenValiditySeconds(3600); // 1 hora de validez del refresh token
 	}
 
     @Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-		
+		// Configura los endpoints del servidor de autorización
 		TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
 		tokenEnhancerChain.setTokenEnhancers(Arrays.asList(infoAdditionalToken, accessTokenConverter()));
 		
 		endpoints.authenticationManager(authenticationManager)
 		.tokenStore(tokenStore())
 		.accessTokenConverter(accessTokenConverter())
-		.tokenEnhancer(tokenEnhancerChain);
+		.tokenEnhancer(tokenEnhancerChain); // Añade los mejoradores del token
 	}
 
     @Bean
 	public JwtTokenStore tokenStore() {
+		// Configura el almacenamiento del token JWT
 		return new JwtTokenStore(accessTokenConverter());
 	}
 
-    /*
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
+        // Configura el convertidor de acceso del token JWT
         JwtAccessTokenConverter tokenConverter = new JwtAccessTokenConverter();
-        String signingKey = Base64.getEncoder().encodeToString(env.getProperty("config.security.oauth.client.key").getBytes());
-        tokenConverter.setSigningKey(signingKey);
-        return tokenConverter;
-    }*/
-
-    @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
-        JwtAccessTokenConverter tokenConverter = new JwtAccessTokenConverter();
-        tokenConverter.setSigningKey(env.getProperty("config.security.oauth.jwt.key"));
+        tokenConverter.setSigningKey(env.getProperty("config.security.oauth.jwt.key")); // Establece la clave de firma
         return tokenConverter;
     }
 
