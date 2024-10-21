@@ -30,8 +30,8 @@ INSERT INTO appointments (client_id, barber_id, appointment_date)
 SELECT 2, 6, '2024-11-07T10:00:00'
 WHERE NOT EXISTS (
     SELECT 1 FROM appointments
-    WHERE (client_id = 2 AND appointment_date = '024-11-07T10:00:00')
-    OR (barber_id = 6 AND appointment_date = '024-11-07T10:00:00')
+    WHERE (client_id = 2 AND appointment_date = '2024-11-07T10:00:00')
+    OR (barber_id = 6 AND appointment_date = '2024-11-07T10:00:00')
 );
 
 -- Cita 5
